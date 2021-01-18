@@ -20,6 +20,9 @@ SDK_DIR_PATH = os.path.join(dragon.WORKSPACE_DIR, "sdk")
 DEFAULT_BASE_SDK_PRODUCT = "anafi2"
 DEFAULT_BASE_SDK_VARIANT = "%s_airsdk"
 
+# Override the parrot build project property to publish all missions under the same folder
+dragon.PARROT_BUILD_PROP_PROJECT = "airsdk-missions"
+
 #===============================================================================
 #===============================================================================
 def download_file(url, outdirpath, netrc_path=None):

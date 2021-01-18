@@ -7,16 +7,18 @@
 #   payload
 #	├── lib
 #	│   ├── libfoo.so (need DT_RUNPATH=$ORIGIN)
-#	│   └── libbar.so (need DT_RUNPATH=$ORIGIN)
+#	│   ├── libbar.so (need DT_RUNPATH=$ORIGIN)
+#	│   └── gstreamer-1.0 (optional)
+#	│        └── libgstbam.so (depend on libfoo.so, need DT_RUNPATH=$ORIGIN/..)
 #	└── services
 #	    └── gee-service (need DT_RUNPATH=$ORIGIN/../lib)
 #
-# So to fullfill both RUNTPATH the two paths are set.
+# So to fullfill all dependencies the following paths are set.
 #
-# Note: $ORIGIN/../lib would work for both but lead to ugly multiple relative
-# path resolution (ex: ../lib/../lib/libfoo.so) for libbar that depends on
-# libfoo called from an executable with rpath=$ORIGIN/../lib
-TARGET_GLOBAL_LDFLAGS := -Wl,-rpath=\$$ORIGIN:\$$ORIGIN/../lib
+# Note: $ORIGIN/../lib would work for lib in ./lib but lead to ugly multiple
+# relative path resolution (ex: ../lib/../lib/libfoo.so) for libbar that depends
+# on libfoo called from an executable with rpath=$ORIGIN/../lib
+TARGET_GLOBAL_LDFLAGS := -Wl,-rpath=\$$ORIGIN:\$$ORIGIN/..:\$$ORIGIN/../lib
 
 ##########
 # Python #

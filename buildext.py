@@ -59,7 +59,7 @@ def get_remote_key_path():
     return "anafi2-dev"
 
 def sign(tar, filelist):
-    # Try signing the archive with a local test key
+    # Try signing the archive with local key
     key = "ecdsa:local:" + get_local_key_path()
     if os.path.exists(get_local_key_path()):
         logging.warning("Signing archive with local key: %s" % key)
@@ -68,10 +68,13 @@ def sign(tar, filelist):
     else:
         logging.warning("No local key found in %s" % key)
 
-    # Sign the archive with remote key
+    # Try signing the archive with remote key
     key = "ecdsa:remote:" + get_remote_key_path()
-    logging.warning("Signing archive with remote key: %s", key)
-    sign_archive(tar, filelist, key, "signature.ecdsa-dev", "sha512")
+    if get_remote_key_path() != "":
+        logging.warning("Signing archive with remote key: %s", key)
+        sign_archive(tar, filelist, key, "signature.ecdsa-dev", "sha512")
+    else:
+        logging.warning("No remote key found in %s" % key)
 
 #===============================================================================
 #===============================================================================

@@ -56,7 +56,7 @@ def get_local_key_path():
     return os.path.join(dragon.PRODUCT_DIR, "common", "key.pem")
 
 def get_remote_key_path():
-    return "anafi2-dev"
+    return ""
 
 def sign(tar, filelist):
     # Try signing the archive with local key

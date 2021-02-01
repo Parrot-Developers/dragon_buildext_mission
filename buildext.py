@@ -78,7 +78,7 @@ def sign(tar, filelist):
 
 #===============================================================================
 #===============================================================================
-def hook_mission_gen_archive(mission_dir):
+def gen_archive(mission_dir):
     name = os.path.split(mission_dir)[1]
     logging.info("Generating mission archive for '%s'", name)
 
@@ -123,7 +123,7 @@ def hook_mission_gen_archive(mission_dir):
 
 #===============================================================================
 #===============================================================================
-def hook_mission_gen_final(mission_dir):
+def gen_final(mission_dir):
     name = os.path.split(mission_dir)[1]
     logging.info("Generating mission final for '%s'", name)
 
@@ -213,8 +213,8 @@ def hook_post_images(task, args):
     for entry in os.listdir(missions_dir):
         mission_dir = os.path.join(missions_dir, entry)
         if os.path.isdir(mission_dir):
-            hook_mission_gen_final(mission_dir)
-            hook_mission_gen_archive(mission_dir)
+            gen_final(mission_dir)
+            gen_archive(mission_dir)
 
 #===============================================================================
 #===============================================================================

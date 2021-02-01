@@ -1,8 +1,11 @@
 import os
 import dragon
+import json
 import logging
 import shutil
 import tempfile
+
+from task import TaskError as TaskError
 
 try:
     from dragon_buildext_sign.buildext import sign_archive
@@ -123,6 +126,27 @@ def gen_archive(mission_dir):
 
 #===============================================================================
 #===============================================================================
+def set_version(mission_dir):
+    json_path = os.path.join(mission_dir, "mission.json")
+    json_cfg = None
+    with open(json_path, "r") as fd:
+        try:
+            json_cfg = json.load(fd)
+        except ValueError as ex:
+            raise TaskError("Error while parsing json file %s: %s" %
+                    (json_path, str(ex)))
+
+    json_cfg['version'] = dragon.PARROT_BUILD_PROP_VERSION
+
+    with open(json_path, "w") as fd:
+        try:
+            json.dump(json_cfg, fd, indent=1)
+        except ValueError as ex:
+            raise TaskError("Error while writing json file %s: %s" %
+                    (json_path, str(ex)))
+
+#===============================================================================
+#===============================================================================
 def gen_final(mission_dir):
     name = os.path.split(mission_dir)[1]
     logging.info("Generating mission final for '%s'", name)
@@ -214,6 +238,7 @@ def hook_post_images(task, args):
         mission_dir = os.path.join(missions_dir, entry)
         if os.path.isdir(mission_dir):
             gen_final(mission_dir)
+            set_version(mission_dir)
             gen_archive(mission_dir)
 
 #===============================================================================

@@ -140,7 +140,7 @@ def set_version(mission_dir):
 
     with open(json_path, "w") as fd:
         try:
-            json.dump(json_cfg, fd, indent=1)
+            json.dump(json_cfg, fd, indent=4)
         except ValueError as ex:
             raise TaskError("Error while writing json file %s: %s" %
                     (json_path, str(ex)))

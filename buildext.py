@@ -13,6 +13,7 @@ try:
 except ImportError:
     CAN_SIGN = False
 
+DRONE_SERVER_URL = "http://anafi2.local/api/v1/mission"
 VERSION_SERVER_URL = "noserver"
 PARTNER_SERVER_URL = "ftp://ftp2.parrot.biz"
 
@@ -264,6 +265,18 @@ def hook_post_images(task, args):
             set_versions(mission_dir)
             gen_archive(mission_dir)
 
+def hook_sync(task, args):
+    missions_dir = os.path.join(dragon.FINAL_DIR, "missions")
+    if not os.path.exists(missions_dir):
+        return
+
+    for entry in os.listdir(missions_dir):
+        mission_dir = os.path.join(missions_dir, entry)
+        if os.path.isdir(mission_dir):
+            url = "%s/missions/?allow_overwrite=yes" % DRONE_SERVER_URL
+            dragon.exec_cmd("curl -X PUT %s --data-binary @%s/%s.tar.gz" % (url,
+                dragon.IMAGES_DIR, entry))
+
 #===============================================================================
 #===============================================================================
 def setup_deftasks():
@@ -280,5 +293,12 @@ def setup_deftasks():
         desc="Download a base SDK either from version (internal) or partner servers",
         prehook=hook_pre_download_base_sdk,
         exechook=hook_download_base_sdk,
+        weak=True
+    )
+
+    dragon.add_meta_task(
+        name="sync",
+        desc="Synchronize mission with target",
+        exechook=hook_sync,
         weak=True
     )

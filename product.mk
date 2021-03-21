@@ -6,19 +6,26 @@
 #
 #   payload
 #	├── lib
-#	│   ├── libfoo.so (need DT_RUNPATH=$ORIGIN)
-#	│   ├── libbar.so (need DT_RUNPATH=$ORIGIN)
-#	│   └── gstreamer-1.0 (optional)
-#	│        └── libgstbam.so (depend on libfoo.so, need DT_RUNPATH=$ORIGIN/..)
+#	│   ├── libfoo.so (need DT_RUNPATH=$ORIGIN)
+#	│   ├── libbar.so (need DT_RUNPATH=$ORIGIN)
+#	│   └── gstreamer-1.0 (optional)
+#	│        └── libgstbam.so (depend on libfoo.so, need DT_RUNPATH=$ORIGIN/..)
 #	└── services
-#	    └── gee-service (need DT_RUNPATH=$ORIGIN/../lib)
+#	    └── gee-service (need DT_RUNPATH=$ORIGIN/../lib)
 #
 # So to fullfill all dependencies the following paths are set.
 #
 # Note: $ORIGIN/../lib would work for lib in ./lib but lead to ugly multiple
 # relative path resolution (ex: ../lib/../lib/libfoo.so) for libbar that depends
 # on libfoo called from an executable with rpath=$ORIGIN/../lib
-TARGET_GLOBAL_LDFLAGS := -Wl,-rpath=\$$ORIGIN:\$$ORIGIN/..:\$$ORIGIN/../lib
+TARGET_GLOBAL_LDFLAGS += -Wl,-rpath=\$$ORIGIN:\$$ORIGIN/..:\$$ORIGIN/../lib
+
+# The sdk may lack some .so needed by some other .so provided in the sdk. Ignore
+# link errors as they are supposed to be present on the target, they are simply
+# not needed for the link
+# Note that if a module actually need it during the build, a error wiil still
+# be reported due to the '--no-undefined' also given by alchemy
+TARGET_GLOBAL_LDFLAGS += -Wl,--unresolved-symbols=ignore-in-shared-libs
 
 ##########
 # Python #

@@ -123,10 +123,23 @@ def gen_archive(mission_dir):
         dragon.exec_cmd("gzip %s" % mission_tar)
         dragon.exec_cmd("cp -pf %s %s/" % (mission_tar_gz, dragon.IMAGES_DIR))
 
+#===============================================================================
+#===============================================================================
+def set_target_version(json_cfg, json_cfg_var, env_var, magic_var):
+    if not json_cfg:
+        return
+
+    version = json_cfg[json_cfg_var]
+
+    if os.getenv(env_var) is not None:
+        json_cfg[json_cfg_var] = os.getenv(env_var)
+    elif not version or version == magic_var:
+        # TODO get the basesdk/airsdk version here (after Alchemy dev is done)
+        json_cfg[json_cfg_var] = dragon.PARROT_BUILD_PROP_VERSION
 
 #===============================================================================
 #===============================================================================
-def set_version(mission_dir):
+def set_versions(mission_dir):
     json_path = os.path.join(mission_dir, "mission.json")
     json_cfg = None
     with open(json_path, "r") as fd:
@@ -136,7 +149,15 @@ def set_version(mission_dir):
             raise TaskError("Error while parsing json file %s: %s" %
                     (json_path, str(ex)))
 
+    # mission version
     json_cfg['version'] = dragon.PARROT_BUILD_PROP_VERSION
+
+    # firmware target min/max versions
+    set_target_version(json_cfg, 'target_min_version',
+        'PARROT_BUILD_FIRMWARE_VERSION_MIN', '@CURRENT_TARGET_FIRMWARE_VERSION')
+
+    set_target_version(json_cfg, 'target_max_version',
+        'PARROT_BUILD_FIRMWARE_VERSION_MAX', '@CURRENT_TARGET_FIRMWARE_VERSION')
 
     with open(json_path, "w") as fd:
         try:
@@ -238,7 +259,7 @@ def hook_post_images(task, args):
         mission_dir = os.path.join(missions_dir, entry)
         if os.path.isdir(mission_dir):
             gen_final(mission_dir)
-            set_version(mission_dir)
+            set_versions(mission_dir)
             gen_archive(mission_dir)
 
 #===============================================================================

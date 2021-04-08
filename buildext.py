@@ -129,9 +129,11 @@ def set_target_version(json_cfg, json_cfg_var, env_var, magic_var):
     if not json_cfg:
         return
 
-    version = json_cfg[json_cfg_var]
+    version = None
+    if json_cfg_var in json_cfg:
+        version = json_cfg[json_cfg_var]
 
-    if os.getenv(env_var) is not None:
+    if os.getenv(env_var):
         json_cfg[json_cfg_var] = os.getenv(env_var)
     elif not version or version == magic_var:
         # TODO get the basesdk/airsdk version here (after Alchemy dev is done)

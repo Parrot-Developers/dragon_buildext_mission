@@ -35,13 +35,14 @@ PYTHON3_VERSION := 3.7
 
 # Rule to create the usr/lib/python symlink early to avoid surprises if a module
 # installs something in usr/lib/python before the link is created.
+# Use -n to avoid dereferencing existing directory symlink
 define python3-symlink-create
 	@if [[ -e $1 && ! -L $1 ]]; then \
 		echo "$1 is not a symlink, you need to clean the output directory"; \
 		exit 1; \
 	fi
 	$(Q) mkdir -p $(dir $1)/python$(PYTHON3_VERSION)
-	$(Q) ln -sf python$(PYTHON3_VERSION) $1
+	$(Q) ln -sfn python$(PYTHON3_VERSION) $1
 endef
 
 .PHONY: python3-symlink

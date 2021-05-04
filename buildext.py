@@ -13,7 +13,7 @@ try:
 except ImportError:
     CAN_SIGN = False
 
-DRONE_SERVER_URL = "http://anafi2.local/api/v1/mission"
+DRONE_SERVER_URL = "http://anafi-ai.local/api/v1/mission"
 VERSION_SERVER_URL = "noserver"
 PARTNER_SERVER_URL = "ftp://ftp2.parrot.biz"
 

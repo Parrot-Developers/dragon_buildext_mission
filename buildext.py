@@ -24,10 +24,9 @@ SDK_DIR_PATH = os.path.join(dragon.WORKSPACE_DIR, "sdk")
 DEFAULT_BASE_SDK_PRODUCT = "anafi2"
 DEFAULT_BASE_SDK_VARIANT = "%s_airsdk"
 
-# Release mode: override the parrot build project property to publish all
+# Override the parrot build project property to publish all
 # missions under the same folder
-if os.environ.get("JKS_RELEASE_VERSION", None) is not None:
-    dragon.PARROT_BUILD_PROP_PROJECT = "airsdk-missions"
+dragon.PARROT_BUILD_PROP_PROJECT = "airsdk-missions"
 
 #===============================================================================
 #===============================================================================

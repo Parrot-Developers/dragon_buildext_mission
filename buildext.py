@@ -13,7 +13,7 @@ try:
 except ImportError:
     CAN_SIGN = False
 
-DRONE_SERVER_URL = "http://anafi-ai.local/api/v1/mission"
+DRONE_SERVER_URL = "http://anafi-ai.local/api/v1"
 VERSION_SERVER_URL = "noserver"
 PARTNER_SERVER_URL = "ftp://ftp2.parrot.biz"
 
@@ -267,6 +267,15 @@ def hook_post_images(task, args):
             gen_archive(mission_dir)
 
 def hook_sync(task, args):
+    parser = dragon.TaskArgumentParser(task)
+    parser.add_argument("--is-default",
+            action="store_true",
+            help="Set mission as default.")
+    parser.add_argument("--reboot",
+            action="store_true",
+            help="Reboot target after sync.")
+    options = parser.parse_args(args)
+
     missions_dir = os.path.join(dragon.FINAL_DIR, "missions")
     if not os.path.exists(missions_dir):
         return
@@ -274,9 +283,15 @@ def hook_sync(task, args):
     for entry in os.listdir(missions_dir):
         mission_dir = os.path.join(missions_dir, entry)
         if os.path.isdir(mission_dir):
-            url = "%s/missions/?allow_overwrite=yes" % DRONE_SERVER_URL
-            dragon.exec_cmd("curl -X PUT %s --data-binary @%s/%s.tar.gz" % (url,
-                dragon.IMAGES_DIR, entry))
+            url = "%s/mission/missions/?allow_overwrite=yes" % DRONE_SERVER_URL
+            if options.is_default:
+                url += "&is_default=yes"
+            dragon.exec_cmd("curl -X PUT '%s' --data-binary @%s/%s.tar.gz" % (
+                url, dragon.IMAGES_DIR, entry))
+
+    if options.reboot:
+        url = "%s/system/reboot" % DRONE_SERVER_URL
+        dragon.exec_cmd("curl -X PUT '%s'" % url)
 
 #===============================================================================
 #===============================================================================

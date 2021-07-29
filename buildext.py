@@ -26,7 +26,9 @@ DEFAULT_BASE_SDK_VARIANT = "%s_airsdk"
 
 # Override the parrot build project property to publish all
 # missions under the same folder
-dragon.PARROT_BUILD_PROP_PROJECT = "airsdk-missions"
+# If already forced via env, do nothing
+if "PARROT_BUILD_PROP_PROJECT" not in os.environ:
+    dragon.PARROT_BUILD_PROP_PROJECT = "airsdk-missions"
 
 #===============================================================================
 #===============================================================================

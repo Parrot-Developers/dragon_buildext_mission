@@ -286,12 +286,12 @@ def hook_sync(task, args):
             url = "%s/mission/missions/?allow_overwrite=yes" % DRONE_SERVER_URL
             if options.is_default:
                 url += "&is_default=yes"
-            dragon.exec_cmd("curl -X PUT '%s' --data-binary @%s/%s.tar.gz" % (
-                url, dragon.IMAGES_DIR, entry))
+            dragon.exec_cmd("curl -i -X PUT '%s' --data-binary @%s/%s.tar.gz"
+                % (url, dragon.IMAGES_DIR, entry))
 
     if options.reboot:
         url = "%s/system/reboot" % DRONE_SERVER_URL
-        dragon.exec_cmd("curl -X PUT '%s'" % url)
+        dragon.exec_cmd("curl -i -X PUT '%s'" % url)
 
 #===============================================================================
 #===============================================================================

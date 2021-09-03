@@ -155,6 +155,8 @@ def set_versions(mission_dir):
 
     # mission version
     json_cfg['version'] = dragon.PARROT_BUILD_PROP_VERSION
+    prop = get_sdk_build_prop()
+    json_cfg['build_sdk_version'] = prop['ro.parrot.build.version']
 
     # firmware target min/max versions
     set_target_version(json_cfg, 'target_min_version',
@@ -169,6 +171,18 @@ def set_versions(mission_dir):
         except ValueError as ex:
             raise TaskError("Error while writing json file %s: %s" %
                     (json_path, str(ex)))
+
+def get_sdk_build_prop():
+    sdk_build_prop = os.path.join(SDK_DIR_PATH, dragon.VARIANT, 'build.prop')
+    props = {}
+    with open(sdk_build_prop, errors="ignore") as f:
+        for line in f.readlines():
+            line = line.strip("\n")
+            # Format is <key>=<value>
+            fields = line.split("=", 1)
+            if len(fields) == 2:
+                props[fields[0]] = fields[1]
+        return props
 
 #===============================================================================
 #===============================================================================

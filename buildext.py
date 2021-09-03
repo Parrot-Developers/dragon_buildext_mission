@@ -271,6 +271,9 @@ def hook_sync(task, args):
     parser.add_argument("--is-default",
             action="store_true",
             help="Set mission as default.")
+    parser.add_argument("--unsigned",
+            action="store_true",
+            help="Allow unsigned mission.")
     parser.add_argument("--reboot",
             action="store_true",
             help="Reboot target after sync.")
@@ -286,6 +289,8 @@ def hook_sync(task, args):
             url = "%s/mission/missions/?allow_overwrite=yes" % DRONE_SERVER_URL
             if options.is_default:
                 url += "&is_default=yes"
+            if options.unsigned:
+                url += "&allow_unsigned=yes"
             dragon.exec_cmd("curl -i -X PUT '%s' --data-binary @%s/%s.tar.gz"
                 % (url, dragon.IMAGES_DIR, entry))
 

@@ -157,6 +157,7 @@ def set_versions(mission_dir):
     json_cfg['version'] = dragon.PARROT_BUILD_PROP_VERSION
     prop = get_sdk_build_prop()
     json_cfg['build_sdk_version'] = prop['ro.parrot.build.version']
+    json_cfg['build_sdk_target_arch'] = prop['ro.missions.sdk_target_arch']
 
     # firmware target min/max versions
     set_target_version(json_cfg, 'target_min_version',

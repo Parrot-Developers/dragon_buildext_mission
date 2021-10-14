@@ -58,7 +58,7 @@ def get_root_url(base_sdk_product, base_sdk_variant, base_sdk_version, netrc_pat
 #===============================================================================
 #===============================================================================
 def get_local_key_path():
-    return os.path.join(dragon.PRODUCT_DIR, "common", "key.pem")
+    return os.path.join(dragon.PRODUCT_DIR, dragon.VARIANT, "key.pem")
 
 def get_remote_key_path():
     return ""

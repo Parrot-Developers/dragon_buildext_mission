@@ -57,29 +57,36 @@ def get_root_url(base_sdk_product, base_sdk_variant, base_sdk_version, netrc_pat
 
 #===============================================================================
 #===============================================================================
-def get_local_key_path():
-    return os.path.join(dragon.PRODUCT_DIR, dragon.VARIANT, "key.pem")
-
-def get_remote_key_path():
-    return ""
-
 def sign(tar, filelist):
-    # Try signing the archive with local key
-    key = "ecdsa:local:" + get_local_key_path()
-    if os.path.exists(get_local_key_path()):
-        logging.warning("Signing archive with local key: %s" % key)
-        sign_archive(tar, filelist, key, "signature.ecdsa", "sha512")
-        return
-    else:
-        logging.warning("No local key found in %s" % key)
+    cfg = dragon.get_json_config()
 
-    # Try signing the archive with remote key
-    key = "ecdsa:remote:" + get_remote_key_path()
-    if get_remote_key_path() != "":
-        logging.warning("Signing archive with remote key: %s", key)
-        sign_archive(tar, filelist, key, "signature.ecdsa-dev", "sha512")
+    key = os.environ.get("MISSION_SIGNATURE_KEY")
+    if not key:
+        key = cfg.get("signature", {}).get("key") if cfg else None
+
+    name = os.environ.get("MISSION_SIGNATURE_NAME")
+    if not name:
+        name = cfg.get("signature", {}).get("name") if cfg else None
+    if not name:
+        name = "signature.ecdsa"
+
+    if not key:
+        logging.warning("No signature key configured")
     else:
-        logging.warning("No remote key found in %s" % key)
+        # If key is local, make sure we have an absolute path
+        if "local" in key:
+            parts = key.split(":", 2)
+            keypath = parts[2]
+            if os.path.isabs(keypath):
+                logging.warning("Local key path should be relative to product dir: '%s'", keypath)
+            else:
+                keypath = os.path.join(dragon.PRODUCT_DIR, keypath)
+            if not os.path.exists(keypath):
+                raise dragon.TaskError("Invalid key path: '%s'" % keypath)
+            key = ":".join([parts[0], parts[1], keypath])
+
+        logging.info("Signing archive with key: %s", key)
+        sign_archive(tar, filelist, key, name, "sha512")
 
 #===============================================================================
 #===============================================================================

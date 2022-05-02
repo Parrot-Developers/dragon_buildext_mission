@@ -116,6 +116,13 @@ def gen_archive(mission_dir):
                 os.path.join(tmpdir, "mission.json"))
         dragon.exec_cmd(cmd)
 
+        # Expose mission.json file in out dir with product-variant in filename
+        cmd = "cp -pf %s %s" % (
+                os.path.join(mission_dir, "mission.json"),
+                os.path.join(dragon.OUT_DIR, name.replace('.', '_') + ".json"),
+        )
+        dragon.exec_cmd(cmd)
+
         # Create the mission archive (not compressed yet)
         cmd = "tar -C %s -cvf %s %s" % (
                 tmpdir,

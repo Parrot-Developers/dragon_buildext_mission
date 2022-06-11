@@ -315,7 +315,7 @@ def hook_sync(task, args):
     for entry in os.listdir(missions_dir):
         mission_dir = os.path.join(missions_dir, entry)
         if os.path.isdir(mission_dir):
-            url = "%s/mission/missions/?allow_overwrite=yes" % DRONE_SERVER_URL
+            url = "%s/mission/missions/?allow_downgrade=yes" % DRONE_SERVER_URL
             if options.is_default:
                 url += "&is_default=yes"
             if options.unsigned:

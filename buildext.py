@@ -3,7 +3,10 @@ import dragon
 import json
 import logging
 import shutil
+import subprocess
 import tempfile
+
+from pathlib import Path
 
 from task import TaskError as TaskError
 
@@ -14,12 +17,15 @@ except ImportError:
     CAN_SIGN = False
 
 DRONE_SERVER_URL = "http://anafi-ai.local/api/v1"
-VERSION_SERVER_URL = "noserver"
-PARTNER_SERVER_URL = "ftp://ftp2.parrot.biz"
+VERSION_SERVER_INTERNAL_URL = "https://noserver"
+VERSION_SERVER_URL = "https://firmware.parrot.com"
+VERSION_SERVER_INTERNAL = False
+
+WORKSPACE_DIR = Path(dragon.WORKSPACE_DIR).absolute()
 
 SDK_TAR_NAME = "sdk.tar.gz"
-SDK_TAR_PATH = os.path.join(dragon.WORKSPACE_DIR, SDK_TAR_NAME)
-SDK_DIR_PATH = os.path.join(dragon.WORKSPACE_DIR, "sdk")
+SDK_TAR_PATH = WORKSPACE_DIR / SDK_TAR_NAME
+SDK_DIR_PATH = WORKSPACE_DIR / "sdk"
 
 DEFAULT_BASE_SDK_PRODUCT = "anafi2"
 DEFAULT_BASE_SDK_VARIANT = "%s_airsdk"
@@ -32,28 +38,34 @@ if "PARROT_BUILD_PROP_PROJECT" not in os.environ:
 
 #===============================================================================
 #===============================================================================
-def download_file(url, outdirpath, netrc_path=None):
-    logging.info("Downloading file: %s", url)
-    file_name = os.path.join(outdirpath, os.path.basename(url))
-
-    netrc_option = ""
-    if netrc_path is not None and os.path.exists(netrc_path):
-        netrc_option = "--netrc-file %s" % netrc_path
-
-    dragon.exec_cmd("curl %s --progress-bar %s --output %s" % (netrc_option,
-        url, file_name))
+def download_file(url, outdirpath):
+    logging.info(f"Downloading file: {url}")
+    file_name = outdirpath / os.path.basename(url)
+    dragon.exec_cmd(f"curl --progress-bar {url} --output {file_name}")
 
 #===============================================================================
 #===============================================================================
-def get_root_url(base_sdk_product, base_sdk_variant, base_sdk_version, netrc_path=None):
-    # partners server
-    if netrc_path is not None and os.path.exists(netrc_path):
-        return "%s/versions/%s/%s/%s" % (PARTNER_SERVER_URL, base_sdk_product,
-                    base_sdk_variant, base_sdk_version)
-
-    # version server
-    return "%s/versions/projects/%s/%s-%s/%s/bin" % (VERSION_SERVER_URL, base_sdk_product,
-                base_sdk_product, base_sdk_variant, base_sdk_version)
+def get_root_url(base_sdk_product, base_sdk_variant, base_sdk_version):
+    if VERSION_SERVER_INTERNAL:
+        # internal version server
+        if base_sdk_version is None or base_sdk_version == "latest":
+            base_sdk_version = r"%23latest"
+        return (
+            f"{VERSION_SERVER_INTERNAL_URL}/versions/projects/"
+            f"{base_sdk_product}/{base_sdk_product}-{base_sdk_variant}/{base_sdk_version}/bin"
+        )
+    else:
+        # public version server
+        if base_sdk_version is None or base_sdk_version == "latest":
+            base_sdk_version = subprocess.check_output([
+                "curl",
+                f"{VERSION_SERVER_URL}/Versions/"
+                f"{base_sdk_product}/{base_sdk_variant}/latest"
+            ]).decode()
+        return (
+            f"{VERSION_SERVER_URL}/Versions/"
+            f"{base_sdk_product}/{base_sdk_variant}/{base_sdk_version}"
+        )
 
 #===============================================================================
 #===============================================================================
@@ -256,30 +268,25 @@ def hook_pre_download_base_sdk(task, args):
 
     os.makedirs(sdk_variant_dir_path)
 
+
 def hook_download_base_sdk(task, args):
     base_sdk_product = os.getenv("PARROT_BUILD_BASE_SDK_PRODUCT", DEFAULT_BASE_SDK_PRODUCT)
     base_sdk_variant = os.getenv("PARROT_BUILD_BASE_SDK_VARIANT",
-                            DEFAULT_BASE_SDK_VARIANT % dragon.VARIANT)
+                                 DEFAULT_BASE_SDK_VARIANT % dragon.VARIANT)
     base_sdk_version = os.getenv("PARROT_BUILD_BASE_SDK_VERSION", None)
 
-    if base_sdk_version is None or base_sdk_version == "latest":
-        base_sdk_version = r"%23latest"
-
-    # path to .netrc file (mandatory for partners)
-    netrc_path = os.path.join(dragon.WORKSPACE_DIR, ".netrc")
-
     # get urls
-    root_url = get_root_url(base_sdk_product, base_sdk_variant,
-                    base_sdk_version, netrc_path)
-    sdk_url = "%s/%s" % (root_url, SDK_TAR_NAME)
+    root_url = get_root_url(base_sdk_product, base_sdk_variant, base_sdk_version)
+    sdk_url = f"{root_url}/{SDK_TAR_NAME}"
 
     # download sdk
-    download_file(sdk_url, outdirpath=dragon.WORKSPACE_DIR, netrc_path=netrc_path)
+    download_file(sdk_url, outdirpath=WORKSPACE_DIR)
 
     # extract sdk
-    sdk_variant_dir_path = os.path.join(SDK_DIR_PATH, dragon.VARIANT)
-    logging.info("Extracting %s into %s", SDK_TAR_NAME, sdk_variant_dir_path)
-    dragon.exec_cmd("tar -xf %s -C %s --strip 1" % (SDK_TAR_PATH, sdk_variant_dir_path))
+    sdk_variant_dir_path = SDK_DIR_PATH / dragon.VARIANT
+    logging.info(f"Extracting {SDK_TAR_NAME} into {sdk_variant_dir_path}")
+    dragon.exec_cmd(f"tar -xf {SDK_TAR_PATH} -C {sdk_variant_dir_path} --strip 1")
+
 
 def hook_post_images(task, args):
     task.call_base_post_hook(args)

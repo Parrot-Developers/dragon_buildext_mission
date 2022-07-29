@@ -46,22 +46,17 @@ def download_file(url, outdirpath):
 #===============================================================================
 #===============================================================================
 def get_root_url(base_sdk_product, base_sdk_variant, base_sdk_version):
+    if base_sdk_version is None or base_sdk_version == "latest":
+        base_sdk_version = r"%23latest"
+
     if VERSION_SERVER_INTERNAL:
         # internal version server
-        if base_sdk_version is None or base_sdk_version == "latest":
-            base_sdk_version = r"%23latest"
         return (
             f"{VERSION_SERVER_INTERNAL_URL}/versions/projects/"
             f"{base_sdk_product}/{base_sdk_product}-{base_sdk_variant}/{base_sdk_version}/bin"
         )
     else:
         # public version server
-        if base_sdk_version is None or base_sdk_version == "latest":
-            base_sdk_version = subprocess.check_output([
-                "curl",
-                f"{VERSION_SERVER_URL}/Versions/"
-                f"{base_sdk_product}/{base_sdk_variant}/latest"
-            ]).decode()
         return (
             f"{VERSION_SERVER_URL}/Versions/"
             f"{base_sdk_product}/{base_sdk_variant}/{base_sdk_version}"

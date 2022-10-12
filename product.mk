@@ -31,7 +31,7 @@ TARGET_GLOBAL_LDFLAGS += -Wl,--unresolved-symbols=ignore-in-shared-libs
 # Python #
 ##########
 
-PYTHON3_VERSION := 3.7
+PYTHON3_VERSION := 3.11
 
 # Rule to create the usr/lib/python symlink early to avoid surprises if a module
 # installs something in usr/lib/python before the link is created.

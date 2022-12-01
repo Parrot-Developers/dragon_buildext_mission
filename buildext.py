@@ -223,7 +223,7 @@ def gen_final(mission_dir):
     # Clean directories that may have been copied twice
     cleandirslist = [
         "lib/python",
-        "lib/python3.[0-9]",
+        "lib/python3.*",
     ]
 
     for key in dirslist:
